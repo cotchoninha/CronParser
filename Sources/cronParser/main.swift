@@ -5,12 +5,11 @@ struct CronParser: ParsableCommand {
     
     static let configuration = CommandConfiguration(abstract: "askjdfka", version: "0.0.1")
     
-    @Argument(help: "Current hour") var currentHour: String = ""
+    @Argument(help: "Current hour") var currentTime: String = ""
     @Argument(help: "Executable file") var execFile: String = ""
     private var schedules = [Schedule]()
     
     mutating func run() throws {
-        print(currentHour)
         readFile()
     }
     
@@ -35,17 +34,16 @@ struct CronParser: ParsableCommand {
     private mutating func createSchedules(with scheduleFileComponents: [String]) {
         scheduleFileComponents.forEach { schedule in
             let scheduleItems = schedule.components(separatedBy: " ")
-            schedules.append(
-                Schedule(
-                    hour: scheduleItems[0],
-                    minute: scheduleItems[1],
-                    task: scheduleItems[2]
-                )
-            )
+            schedules.append(Schedule(from: scheduleItems))
         }
         print("Schedules", schedules)
+        getExpectedTimeForChronometer()
     }
     
+    private func getExpectedTimeForChronometer() {
+        let currentTime = CurrentTime(from: currentTime)
+        print(currentTime)
+    }
     
 }
 
