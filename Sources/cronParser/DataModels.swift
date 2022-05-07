@@ -13,8 +13,8 @@ struct Schedule: Codable {
     let task: String
     
     init(from scheduleItems: [String]) {
-        self.hour = scheduleItems[0]
-        self.minutes = scheduleItems[1]
+        self.hour = scheduleItems[1]
+        self.minutes = scheduleItems[0]
         self.task = scheduleItems[2]
     }
     
@@ -33,6 +33,7 @@ struct CurrentTime: Codable {
     
     init(from currentTime: String) {
         let timeElements = currentTime.components(separatedBy: ":")
+//        guard !timeElements.isEmpty else { initsss return }
         self.hour = Int(timeElements[0])
         self.minutes = Int(timeElements[1])
     }

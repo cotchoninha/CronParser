@@ -49,17 +49,13 @@ struct CronParser: ParsableCommand {
         
         schedules.forEach { schedule in
             let everyHourMinute = (schedule.isEveryHour, schedule.isEveryMinute)
-            print("everyHourMinute ", everyHourMinute)
             
             switch everyHourMinute {
             case (true, true):
                 print("true, true")
+                //
                 print("\(currentHour):\(currentMinutes) today")
             case (false, true):
-                // if schedule specific hour and every minute, I need to check:
-                // - if schedule hour after current hour print("\(schedule.hour):\(00) today)
-                // - if schedule hour == current hour, print("\(schedule.hour):\(current.minute) today)
-                // - if schedule hour before current hour, print("\(schedule.hour):\(00) tomorrow)
                 print("false, true")
             case (true, false):
                 print("true, false")
@@ -69,15 +65,58 @@ struct CronParser: ParsableCommand {
                 // - if schedule minute == current minute, print("\(schedule.hour):\(schedule.minute) today)
                 // - if schedule minute < current minute, print("\(current.hour + 1):\(schedule.minute) tomorrow)
             case (false, false):
-                // if both are ran specific hour and minute I need to check:
-                // - if schedule time after current time print("\(schedule.hour):\(schedule.minute) tomorrow)
-                // - if current time == schedule time, print("\(schedule.hour):\(schedule.minute) today)
-                // - if schedule time before current time, print("\(schedule.hour):\(schedule.minute) today)
+                outputForSpecificHourAndMinute(
+                    currentHour: currentHour,
+                    currentMinutes: currentMinutes,
+                    schedule: schedule
+                )
+                
                 print("false, false")
             }
         }
     }
 
+    
+    func outputForSpecificHourAndMinute(
+        currentHour: Int,
+        currentMinutes: Int,
+        schedule: Schedule
+    ) {
+        // - if schedule time > current time print("\(schedule.hour):\(schedule.minute) today)
+        // - if current time == schedule time, print("\(schedule.hour):\(schedule.minute) today)
+        // - if schedule time < current time, print("\(schedule.hour):\(schedule.minute) tomorrow)
+        
+        guard let scheduleHour = Int(schedule.hour), let scheduleMinutes = Int(schedule.minutes) else {
+            print("The Scheduled hour or minute has an invalid format")
+            return
+        }
+        
+        if scheduleHour == currentHour, scheduleMinutes == currentMinutes {
+            print("\(schedule.hour):\(schedule.minutes) today")
+        } else if currentHour == scheduleHour {
+            if currentMinutes > scheduleMinutes {
+                print("\(scheduleHour):\(scheduleMinutes) today")
+            } else {
+                print("\(scheduleHour):\(scheduleMinutes) tomorrow")
+            }
+        } else if currentHour > scheduleHour {
+            print("\(scheduleHour):\(scheduleMinutes) tomorrow")
+        } else if currentHour < scheduleHour {
+            print("\(scheduleHour):\(scheduleMinutes) today")
+        }
+    }
+    
+    func outputForSpecificHourEveryMinute(
+        currentHour: Int,
+        currentMinutes: Int,
+        schedule: Schedule
+    ) {
+        // - if schedule hour after current hour print("\(schedule.hour):\(00) today)
+        // - if schedule hour == current hour, print("\(schedule.hour):\(current.minute) today)
+        // - if schedule hour before current hour, print("\(schedule.hour):\(00) tomorrow)
+        
+    }
+    
 }
 
 CronParser.main()
