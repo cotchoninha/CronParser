@@ -5,8 +5,8 @@ struct CronParser: ParsableCommand {
     
     static let configuration = CommandConfiguration(abstract: "askjdfka", version: "0.0.1")
     
-    @Argument(help: "Current hour") var currentTime: String = ""
-    @Argument(help: "Executable file") var execFile: String = ""
+    @Argument(help: "Current hour") var currentTime: String = "16:10"
+    @Argument(help: "Executable file") var execFile: String = "cat.txt"
     private var schedules = [Schedule]()
     
     mutating func run() throws {
@@ -42,7 +42,7 @@ struct CronParser: ParsableCommand {
     
     private func getExpectedTimeForChronometer() {
         let currentTime = CurrentTime(from: currentTime)
-        guard let hour = currentTime.hour, let minutes = currentTime.minutes else {
+        guard let currentHour = currentTime.hour, let currentMinutes = currentTime.minutes else {
             print("The input current time is invalid")
             return
         }
@@ -54,16 +54,30 @@ struct CronParser: ParsableCommand {
             switch everyHourMinute {
             case (true, true):
                 print("true, true")
+                print("\(currentHour):\(currentMinutes) today")
             case (false, true):
+                // if schedule specific hour and every minute, I need to check:
+                // - if schedule hour after current hour print("\(schedule.hour):\(00) today)
+                // - if schedule hour == current hour, print("\(schedule.hour):\(current.minute) today)
+                // - if schedule hour before current hour, print("\(schedule.hour):\(00) tomorrow)
                 print("false, true")
             case (true, false):
                 print("true, false")
+                //CHECK IF MIDNIGHT
+                // if schedule every hour and specific minute, I need to check:
+                // - if schedule minute > current minute print("\(current.hour):\(schedule.minute) today)
+                // - if schedule minute == current minute, print("\(schedule.hour):\(schedule.minute) today)
+                // - if schedule minute < current minute, print("\(current.hour + 1):\(schedule.minute) tomorrow)
             case (false, false):
+                // if both are ran specific hour and minute I need to check:
+                // - if schedule time after current time print("\(schedule.hour):\(schedule.minute) tomorrow)
+                // - if current time == schedule time, print("\(schedule.hour):\(schedule.minute) today)
+                // - if schedule time before current time, print("\(schedule.hour):\(schedule.minute) today)
                 print("false, false")
             }
         }
     }
-    
+
 }
 
 CronParser.main()
