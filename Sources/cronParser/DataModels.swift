@@ -28,12 +28,12 @@ struct Schedule: Codable {
 }
 
 struct CurrentTime: Codable {
-    let hour: String
-    let minutes: String
+    let hour: Int?
+    let minutes: Int?
     
     init(from currentTime: String) {
         let timeElements = currentTime.components(separatedBy: ":")
-        self.hour = timeElements[0]
-        self.minutes = timeElements[1]
+        self.hour = Int(timeElements[0])
+        self.minutes = Int(timeElements[1])
     }
 }

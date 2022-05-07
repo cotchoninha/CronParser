@@ -42,7 +42,26 @@ struct CronParser: ParsableCommand {
     
     private func getExpectedTimeForChronometer() {
         let currentTime = CurrentTime(from: currentTime)
-        print(currentTime)
+        guard let hour = currentTime.hour, let minutes = currentTime.minutes else {
+            print("The input current time is invalid")
+            return
+        }
+        
+        schedules.forEach { schedule in
+            let everyHourMinute = (schedule.isEveryHour, schedule.isEveryMinute)
+            print("everyHourMinute ", everyHourMinute)
+            
+            switch everyHourMinute {
+            case (true, true):
+                print("true, true")
+            case (false, true):
+                print("false, true")
+            case (true, false):
+                print("true, false")
+            case (false, false):
+                print("false, false")
+            }
+        }
     }
     
 }
