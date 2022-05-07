@@ -9,13 +9,21 @@ import Foundation
 
 struct Schedule: Codable {
     let hour: String
-    let minute: String
+    let minutes: String
     let task: String
     
     init(from scheduleItems: [String]) {
         self.hour = scheduleItems[0]
-        self.minute = scheduleItems[1]
+        self.minutes = scheduleItems[1]
         self.task = scheduleItems[2]
+    }
+    
+    var isEveryHour: Bool {
+        hour == "*" ? true : false
+    }
+    
+    var isEveryMinute: Bool {
+        minutes == "*" ? true : false
     }
 }
 
