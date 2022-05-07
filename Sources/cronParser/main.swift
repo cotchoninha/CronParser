@@ -7,7 +7,7 @@ struct CronParser: ParsableCommand {
     
     @Argument(help: "Current hour") var currentHour: String = ""
     @Argument(help: "Executable file") var execFile: String = ""
-    private var fileText = ""
+    private var schedules = [Schedule]()
     
     mutating func run() throws {
         print(currentHour)
@@ -15,6 +15,8 @@ struct CronParser: ParsableCommand {
     }
     
     private mutating func readFile() {
+        var fileText = ""
+        
         if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             
             let fileURL = dir.appendingPathComponent(execFile)
@@ -26,8 +28,25 @@ struct CronParser: ParsableCommand {
                 print(error.localizedDescription)
             }
         }
-        print(fileText.components(separatedBy: "\n"))
+        let scheduleFileComponents = fileText.components(separatedBy: "\n")
+        createSchedules(with: scheduleFileComponents)
     }
+    
+    private mutating func createSchedules(with scheduleFileComponents: [String]) {
+        scheduleFileComponents.forEach { schedule in
+            let scheduleItems = schedule.components(separatedBy: " ")
+            schedules.append(
+                Schedule(
+                    hour: scheduleItems[0],
+                    minute: scheduleItems[1],
+                    task: scheduleItems[2]
+                )
+            )
+        }
+        print("Schedules", schedules)
+    }
+    
+    
 }
 
 CronParser.main()
