@@ -5,7 +5,7 @@ struct CronParser: ParsableCommand {
     
     static let configuration = CommandConfiguration(abstract: "askjdfka", version: "0.0.1")
     
-    @Argument(help: "Current hour") var currentTime: String = "16:10"
+    @Argument(help: "Current hour") var currentTime: String = "15:10"
     @Argument(help: "Executable file") var execFile: String = "cat.txt"
     private var schedules = [Schedule]()
     
@@ -56,6 +56,11 @@ struct CronParser: ParsableCommand {
                 //
                 print("\(currentHour):\(currentMinutes) today")
             case (false, true):
+                outputForSpecificHourEveryMinute(
+                    currentHour: currentHour,
+                    currentMinutes: currentMinutes,
+                    schedule: schedule
+                )
                 print("false, true")
             case (true, false):
                 print("true, false")
@@ -111,9 +116,20 @@ struct CronParser: ParsableCommand {
         currentMinutes: Int,
         schedule: Schedule
     ) {
+        guard let scheduleHour = Int(schedule.hour) else {
+            print("The Scheduled hour has an invalid format")
+            return
+        }
         // - if schedule hour after current hour print("\(schedule.hour):\(00) today)
         // - if schedule hour == current hour, print("\(schedule.hour):\(current.minute) today)
         // - if schedule hour before current hour, print("\(schedule.hour):\(00) tomorrow)
+        if scheduleHour == currentHour {
+            print("\(scheduleHour):\(currentMinutes) today")
+        } else if scheduleHour > currentHour {
+            print("\(schedule.hour):\("00") today")
+        } else if scheduleHour < currentHour {
+            print("\(schedule.hour):\("00") tomorrow")
+        }
         
     }
     
