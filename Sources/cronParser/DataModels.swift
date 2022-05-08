@@ -38,3 +38,10 @@ struct CurrentTime: Codable {
         self.minutes = Int(timeElements[1])
     }
 }
+
+enum TimeStates {
+    case before
+    case after
+    case equal
+    case none
+}

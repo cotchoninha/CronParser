@@ -5,7 +5,7 @@ struct CronParser: ParsableCommand {
     
     static let configuration = CommandConfiguration(abstract: "askjdfka", version: "0.0.1")
     
-    @Argument(help: "Current hour") var currentTime: String = "21:46"
+    @Argument(help: "Current hour") var currentTime: String = "23:46"
     @Argument(help: "Executable file") var execFile: String = "cat.txt"
     private var schedules = [Schedule]()
     
@@ -15,11 +15,8 @@ struct CronParser: ParsableCommand {
     
     private mutating func readFile() {
         var fileText = ""
-        
         if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            
             let fileURL = dir.appendingPathComponent(execFile)
-            
             do {
                 fileText = try String(contentsOf: fileURL, encoding: .utf8)
             }
@@ -27,8 +24,7 @@ struct CronParser: ParsableCommand {
                 print(error.localizedDescription)
             }
         }
-        let scheduleFileComponents = fileText.components(separatedBy: "\n")
-        createSchedules(with: scheduleFileComponents)
+        createSchedules(with: fileText.components(separatedBy: "\n"))
     }
     
     private mutating func createSchedules(with scheduleFileComponents: [String]) {
@@ -52,25 +48,20 @@ struct CronParser: ParsableCommand {
             
             switch everyHourMinute {
             case (true, true):
-                print("true, true")
-                //
                 print("\(currentHour):\(currentMinutes) today")
             case (false, true):
-                print("false, true")
                 outputForSpecificHourEveryMinute(
                     currentHour: currentHour,
                     currentMinutes: currentMinutes,
                     schedule: schedule
                 )
             case (true, false):
-                print("true, false")
                 outputForEveryHourSpecificMinute(
                     currentHour: currentHour,
                     currentMinutes: currentMinutes,
                     schedule: schedule
                 )
             case (false, false):
-                print("false, false")
                 outputForSpecificHourAndMinute(
                     currentHour: currentHour,
                     currentMinutes: currentMinutes,
@@ -86,27 +77,25 @@ struct CronParser: ParsableCommand {
         currentMinutes: Int,
         schedule: Schedule
     ) {
-        // - if schedule time > current time print("\(schedule.hour):\(schedule.minute) today)
-        // - if current time == schedule time, print("\(schedule.hour):\(schedule.minute) today)
-        // - if schedule time < current time, print("\(schedule.hour):\(schedule.minute) tomorrow)
         
         guard let scheduleHour = Int(schedule.hour), let scheduleMinutes = Int(schedule.minutes) else {
             print("The Scheduled hour or minute has an invalid format")
             return
         }
         
-        if scheduleHour == currentHour, scheduleMinutes == currentMinutes {
-            print("\(schedule.hour):\(schedule.minutes) today")
-        } else if currentHour == scheduleHour {
-            if currentMinutes > scheduleMinutes {
-                print("\(scheduleHour):\(scheduleMinutes) today")
-            } else {
-                print("\(scheduleHour):\(scheduleMinutes) tomorrow")
-            }
-        } else if currentHour > scheduleHour {
+        let timeStates = Int.timeStateForSpecificHourMinute(
+            from: schedule,
+            to: currentHour,
+            and: currentMinutes
+        )
+        
+        switch timeStates {
+        case .before:
             print("\(scheduleHour):\(scheduleMinutes) tomorrow")
-        } else if currentHour < scheduleHour {
+        case .after, .equal:
             print("\(scheduleHour):\(scheduleMinutes) today")
+        case .none:
+            print("There's an error parsing the time")
         }
     }
     
@@ -115,19 +104,23 @@ struct CronParser: ParsableCommand {
         currentMinutes: Int,
         schedule: Schedule
     ) {
-        guard let scheduleHour = Int(schedule.hour) else {
-            print("The Scheduled hour has an invalid format")
-            return
-        }
-        // - if schedule hour after current hour print("\(schedule.hour):\(00) today)
-        // - if schedule hour == current hour, print("\(schedule.hour):\(current.minute) today)
-        // - if schedule hour before current hour, print("\(schedule.hour):\(00) tomorrow)
-        if scheduleHour == currentHour {
-            print("\(scheduleHour):\(currentMinutes) today")
-        } else if scheduleHour > currentHour {
-            print("\(schedule.hour):00 today")
-        } else if scheduleHour < currentHour {
+        
+        let timeStates = Int.timeStateForSpecificHour(
+            from: schedule,
+            to: currentHour,
+            and: currentMinutes
+        )
+        
+        switch timeStates {
+        case .before:
             print("\(schedule.hour):00 tomorrow")
+        case .after:
+            print("\(schedule.hour):00 today")
+        case .equal:
+            print("\(schedule.hour):\(currentMinutes) today")
+        case .none:
+            print("There's an error parsing the time")
+
         }
     }
     
@@ -140,18 +133,96 @@ struct CronParser: ParsableCommand {
             print("The Scheduled minutes has an invalid format")
             return
         }
-        //CHECK IF MIDNIGHT
-        // - if schedule minute > current minute print("\(current.hour):\(schedule.minute) today)
-        // - if schedule minute == current minute, print("\(schedule.hour):\(schedule.minute) today)
-        // - if schedule minute < current minute, print("\(current.hour + 1):\(schedule.minute) tomorrow)
-        if scheduleMinutes == currentMinutes {
+        
+        let timeStates = Int.timeStateForSpecificMinutes(
+            from: schedule,
+            to: currentHour,
+            and: currentMinutes
+        )
+        
+        switch timeStates {
+        case .before:
+            let hourValue = currentHour == 23 ? "00" : String(currentHour + 1)
+            let dayValue = hourValue == "00" ? "tomorrow" : "today"
+            print("\(hourValue):\(scheduleMinutes) \(dayValue)")
+        case .after:
             print("\(currentHour):\(scheduleMinutes) today")
-        } else if scheduleMinutes > currentMinutes {
+        case .equal:
             print("\(currentHour):\(scheduleMinutes) today")
-        } else if scheduleMinutes < currentMinutes {
-            print("\(currentHour + 1):\(scheduleMinutes) today")
+        case .none:
+            print("There's an error parsing the time")
         }
     }
+}
+
+extension Int {
+    
+    static func timeStateForSpecificHourMinute(
+        from schedule: Schedule,
+        to currentHour: Int,
+        and currentMinutes: Int
+    ) -> TimeStates {
+        guard let scheduleHour = Int(schedule.hour), let scheduleMinutes = Int(schedule.minutes) else {
+            print("The Scheduled hour or minute has an invalid format")
+            return .none
+        }
+        
+        if scheduleHour == currentHour, scheduleMinutes == currentMinutes {
+            return .equal
+        } else if scheduleHour == currentHour {
+            if scheduleMinutes < currentMinutes {
+                return .before
+            } else {
+                return .after
+            }
+        } else if scheduleHour < currentHour {
+            return .before
+        } else if scheduleHour > currentHour {
+            return .after
+        }
+        return .none
+    }
+    
+    static func timeStateForSpecificHour(
+        from schedule: Schedule,
+        to currentHour: Int,
+        and currentMinutes: Int
+    ) -> TimeStates {
+        guard let scheduleHour = Int(schedule.hour) else {
+            print("The Scheduled hour has an invalid format")
+            return .none
+        }
+
+        if scheduleHour == currentHour {
+            return .equal
+        } else if scheduleHour > currentHour {
+            return .after
+        } else if scheduleHour < currentHour {
+            return .before
+        }
+        return .none
+    }
+    
+    static func timeStateForSpecificMinutes(
+        from schedule: Schedule,
+        to currentHour: Int,
+        and currentMinutes: Int
+    ) -> TimeStates {
+        guard let scheduleMinutes = Int(schedule.minutes) else {
+            print("The Scheduled minutes has an invalid format")
+            return .none
+        }
+
+        if scheduleMinutes == currentMinutes {
+            return .equal
+        } else if scheduleMinutes > currentMinutes {
+            return .after
+        } else if scheduleMinutes < currentMinutes {
+            return .before
+        }
+        return .none
+    }
+    
 }
 
 CronParser.main()
