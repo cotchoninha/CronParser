@@ -5,7 +5,7 @@ struct CronParser: ParsableCommand {
     
     static let configuration = CommandConfiguration(abstract: "askjdfka", version: "0.0.1")
     
-    @Argument(help: "Current hour") var currentTime: String = "15:10"
+    @Argument(help: "Current hour") var currentTime: String = "21:46"
     @Argument(help: "Executable file") var execFile: String = "cat.txt"
     private var schedules = [Schedule]()
     
@@ -56,27 +56,26 @@ struct CronParser: ParsableCommand {
                 //
                 print("\(currentHour):\(currentMinutes) today")
             case (false, true):
+                print("false, true")
                 outputForSpecificHourEveryMinute(
                     currentHour: currentHour,
                     currentMinutes: currentMinutes,
                     schedule: schedule
                 )
-                print("false, true")
             case (true, false):
                 print("true, false")
-                //CHECK IF MIDNIGHT
-                // if schedule every hour and specific minute, I need to check:
-                // - if schedule minute > current minute print("\(current.hour):\(schedule.minute) today)
-                // - if schedule minute == current minute, print("\(schedule.hour):\(schedule.minute) today)
-                // - if schedule minute < current minute, print("\(current.hour + 1):\(schedule.minute) tomorrow)
+                outputForEveryHourSpecificMinute(
+                    currentHour: currentHour,
+                    currentMinutes: currentMinutes,
+                    schedule: schedule
+                )
             case (false, false):
+                print("false, false")
                 outputForSpecificHourAndMinute(
                     currentHour: currentHour,
                     currentMinutes: currentMinutes,
                     schedule: schedule
                 )
-                
-                print("false, false")
             }
         }
     }
@@ -126,13 +125,33 @@ struct CronParser: ParsableCommand {
         if scheduleHour == currentHour {
             print("\(scheduleHour):\(currentMinutes) today")
         } else if scheduleHour > currentHour {
-            print("\(schedule.hour):\("00") today")
+            print("\(schedule.hour):00 today")
         } else if scheduleHour < currentHour {
-            print("\(schedule.hour):\("00") tomorrow")
+            print("\(schedule.hour):00 tomorrow")
         }
-        
     }
     
+    func outputForEveryHourSpecificMinute(
+        currentHour: Int,
+        currentMinutes: Int,
+        schedule: Schedule
+    ) {
+        guard let scheduleMinutes = Int(schedule.minutes) else {
+            print("The Scheduled minutes has an invalid format")
+            return
+        }
+        //CHECK IF MIDNIGHT
+        // - if schedule minute > current minute print("\(current.hour):\(schedule.minute) today)
+        // - if schedule minute == current minute, print("\(schedule.hour):\(schedule.minute) today)
+        // - if schedule minute < current minute, print("\(current.hour + 1):\(schedule.minute) tomorrow)
+        if scheduleMinutes == currentMinutes {
+            print("\(currentHour):\(scheduleMinutes) today")
+        } else if scheduleMinutes > currentMinutes {
+            print("\(currentHour):\(scheduleMinutes) today")
+        } else if scheduleMinutes < currentMinutes {
+            print("\(currentHour + 1):\(scheduleMinutes) today")
+        }
+    }
 }
 
 CronParser.main()
