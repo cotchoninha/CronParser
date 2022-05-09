@@ -10,7 +10,7 @@ import Foundation
 
 struct CronParser: ParsableCommand {
     
-    static let configuration = CommandConfiguration(abstract: "askjdfka", version: "0.0.1")
+    static let configuration = CommandConfiguration(abstract: "CronParser", version: "0.0.1")
     
     @Argument(help: "Current hour") private var currentTime: String = ""
     @Argument(help: "Executable file") private var execFile: String = ""
