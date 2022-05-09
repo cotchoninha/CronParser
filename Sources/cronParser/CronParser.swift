@@ -21,6 +21,7 @@ struct CronParser: ParsableCommand {
         readFile()
     }
     
+    // Reads the content of the txt file input.
     private mutating func readFile() {
         var fileText = ""
         if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
@@ -35,6 +36,7 @@ struct CronParser: ParsableCommand {
         createSchedules(with: fileText.components(separatedBy: "\n"))
     }
     
+    // Creates the scheduled tasks objects
     private mutating func createSchedules(with scheduleFileComponents: [String]) {
         scheduleFileComponents.forEach { schedule in
             let scheduleItems = schedule.components(separatedBy: " ")
@@ -44,6 +46,7 @@ struct CronParser: ParsableCommand {
         getExpectedTimeForChronometer()
     }
     
+    // Prints the correct expected times that the cronometer should run the task
     private func getExpectedTimeForChronometer() {
         guard !currentTime.isEmpty, currentTime.contains(":") else {
             print("The input current time is invalid")
@@ -61,7 +64,7 @@ struct CronParser: ParsableCommand {
             
             switch everyHourMinute {
             case (true, true):
-                print("\(currentHour):\(currentMinutes) today")
+                print("\(currentHour):\(currentMinutes) today - \(schedule.task)")
             case (false, true):
                 outputForSpecificHourEveryMinute(
                     currentHour: currentHour,
@@ -104,9 +107,9 @@ struct CronParser: ParsableCommand {
         
         switch timeStates {
         case .before:
-            print("\(scheduleHour):\(scheduleMinutes) tomorrow")
+            print("\(scheduleHour):\(scheduleMinutes) tomorrow - \(schedule.task)")
         case .after, .equal:
-            print("\(scheduleHour):\(scheduleMinutes) today")
+            print("\(scheduleHour):\(scheduleMinutes) today - \(schedule.task)")
         case .none:
             print("There's an error parsing the time")
         }
@@ -126,11 +129,11 @@ struct CronParser: ParsableCommand {
         
         switch timeStates {
         case .before:
-            print("\(schedule.hour):00 tomorrow")
+            print("\(schedule.hour):00 tomorrow - \(schedule.task)")
         case .after:
-            print("\(schedule.hour):00 today")
+            print("\(schedule.hour):00 today - \(schedule.task)")
         case .equal:
-            print("\(schedule.hour):\(currentMinutes) today")
+            print("\(schedule.hour):\(currentMinutes) today - \(schedule.task)")
         case .none:
             print("Error when parsing the time")
 
@@ -157,11 +160,11 @@ struct CronParser: ParsableCommand {
         case .before:
             let hourValue = currentHour == 23 ? "00" : String(currentHour + 1)
             let dayValue = hourValue == "00" ? "tomorrow" : "today"
-            print("\(hourValue):\(scheduleMinutes) \(dayValue)")
+            print("\(hourValue):\(scheduleMinutes) \(dayValue) - \(schedule.task)")
         case .after:
-            print("\(currentHour):\(scheduleMinutes) today")
+            print("\(currentHour):\(scheduleMinutes) today - \(schedule.task)")
         case .equal:
-            print("\(currentHour):\(scheduleMinutes) today")
+            print("\(currentHour):\(scheduleMinutes) today - \(schedule.task)")
         case .none:
             print("There's an error parsing the time")
         }

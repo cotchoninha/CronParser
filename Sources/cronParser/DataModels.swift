@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A Schedule will retain the indication of the hours and minutes that a task needs to run and the description of that periodicity.
 struct Schedule: Codable {
     let hour: String
     let minutes: String
@@ -27,7 +28,9 @@ struct Schedule: Codable {
     }
 }
 
+// The Schedule methods will return the state of the time comparing the scheduled time with the current time and return before, after, equal or none, based on the type of task.
 extension Schedule {
+
     static func timeStateForSpecificHourMinute(
         from schedule: Self,
         to currentHour: Int,
@@ -95,6 +98,7 @@ extension Schedule {
     }
 }
 
+/// Current time represents the hours and the minutes of the input current time
 struct CurrentTime: Codable {
     let hour: Int?
     let minutes: Int?
@@ -106,6 +110,7 @@ struct CurrentTime: Codable {
     }
 }
 
+/// Types of time states when comparing the scheduled hour with the current hour and determine if it's before after or equal.
 enum TimeStates {
     case before
     case after
