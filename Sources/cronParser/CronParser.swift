@@ -48,7 +48,7 @@ struct CronParser: ParsableCommand {
     }
     
     // Prints the correct expected times that the cronometer should run the task
-            private func getExpectedTimeForChronometer(with schedules: [Schedule]) {
+    private func getExpectedTimeForChronometer(with schedules: [Schedule]) {
         guard !currentTime.isEmpty, currentTime.contains(":") else {
             print("The input current time is invalid")
             return
