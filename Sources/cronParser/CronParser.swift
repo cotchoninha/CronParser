@@ -38,16 +38,17 @@ struct CronParser: ParsableCommand {
     
     // Creates the scheduled tasks objects
     private mutating func createSchedules(with scheduleFileComponents: [String]) {
+        var schedules = [Schedule]()
         scheduleFileComponents.forEach { schedule in
             let scheduleItems = schedule.components(separatedBy: " ")
             guard !scheduleItems.isEmpty, let first = scheduleItems.first, !first.isEmpty else { return }
             schedules.append(Schedule(from: scheduleItems))
         }
-        getExpectedTimeForChronometer()
+        getExpectedTimeForChronometer(with: schedules)
     }
     
     // Prints the correct expected times that the cronometer should run the task
-    private func getExpectedTimeForChronometer() {
+            private func getExpectedTimeForChronometer(with schedules: [Schedule]) {
         guard !currentTime.isEmpty, currentTime.contains(":") else {
             print("The input current time is invalid")
             return
