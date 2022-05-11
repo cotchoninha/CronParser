@@ -12,30 +12,14 @@ struct CronParser: ParsableCommand {
     
     static let configuration = CommandConfiguration(abstract: "CronParser", version: "0.0.1")
     
+    @Argument(help: "Schedules") private var schedules: String?
     @Argument(help: "Current hour") private var currentTime: String = ""
-    @Argument(help: "Executable file") private var execFile: String = ""
-    
-    private var schedules = [Schedule]()
     
     mutating func run() throws {
-        readFile()
+        guard let schedules = schedules else { return }
+        createSchedules(with: schedules.components(separatedBy: "\n"))
     }
-    
-    // Reads the content of the txt file input.
-    private mutating func readFile() {
-        var fileText = ""
-        if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let fileURL = dir.appendingPathComponent(execFile)
-            do {
-                fileText = try String(contentsOf: fileURL, encoding: .utf8)
-            }
-            catch {
-                print("Error reading file \(fileURL)", error.localizedDescription)
-            }
-        }
-        createSchedules(with: fileText.components(separatedBy: "\n"))
-    }
-    
+   
     // Creates the scheduled tasks objects
     private mutating func createSchedules(with scheduleFileComponents: [String]) {
         var schedules = [Schedule]()
@@ -87,7 +71,7 @@ struct CronParser: ParsableCommand {
             }
         }
     }
-
+    
     
     private func outputForSpecificHourAndMinute(
         currentHour: Int,
@@ -137,7 +121,7 @@ struct CronParser: ParsableCommand {
             print("\(schedule.hour):\(currentMinutes) today - \(schedule.task)")
         case .none:
             print("Error when parsing the time")
-
+            
         }
     }
     
